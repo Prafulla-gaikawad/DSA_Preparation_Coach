@@ -1,4 +1,5 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 
 const SUPPORTED_LANGUAGES = [
@@ -11,8 +12,8 @@ const SUPPORTED_LANGUAGES = [
 
 const DEFAULT_TEST_CASES = [
   {
-    input: "5\n3",
-    expectedOutput: "8",
+    input: "4\n2",
+    expectedOutput: "6",
     description: "Test Case 1: Basic addition",
   },
   {
@@ -22,14 +23,49 @@ const DEFAULT_TEST_CASES = [
   },
 ];
 
-const CodeEditor = () => {
-  const [language, setLanguage] = useState("python");
+const CodeEditor = ({ onRun }) => {
+  const { problemId } = useParams();
+  const [language, setLanguage] = useState("javascript");
   const [theme, setTheme] = useState("vs-dark");
   const [code, setCode] = useState("");
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
+  const [problemData, setProblemData] = useState(null);
   const editorRef = useRef(null);
+
+  useEffect(() => {
+    if (problemId) {
+      fetchProblemData();
+    }
+  }, [problemId]);
+
+  const fetchProblemData = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/problems/${problemId}`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        console.log("Full Problem Data:", data);
+        console.log("Test Cases:", data.testCases);
+        setProblemData(data);
+
+        // If problem has starter code, set it in the editor
+        if (data.starterCode) {
+          setCode(data.starterCode);
+        }
+      } else {
+        console.error(
+          "Failed to fetch problem:",
+          data.message || "Unknown error"
+        );
+      }
+    } catch (err) {
+      console.error("Error fetching problem:", err);
+    }
+  };
 
   const handleEditorChange = (value) => {
     setCode(value);
@@ -46,6 +82,23 @@ const CodeEditor = () => {
     setResults(null);
 
     try {
+      // Format test cases to match backend structure and properly handle newlines
+      const formattedTestCases =
+        problemData?.testCases?.map((testCase) => {
+          // Split the input string by literal '\n' and join with actual newlines
+          const formattedInput = testCase.input.replace(/\\n/g, "\n");
+
+          return {
+            input: formattedInput,
+            expectedOutput: testCase.output || "",
+            description: `Test Case ${
+              testCase._id ? testCase._id.slice(-4) : ""
+            }`,
+          };
+        }) || [];
+
+      console.log("Sending test cases to backend:", formattedTestCases);
+
       const response = await fetch("http://localhost:5000/api/code/execute", {
         method: "POST",
         headers: {
@@ -54,19 +107,26 @@ const CodeEditor = () => {
         body: JSON.stringify({
           code,
           language,
-          testCases: DEFAULT_TEST_CASES,
+          testCases: formattedTestCases,
         }),
       });
 
       const data = await response.json();
+      console.log("Backend response:", data);
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to execute code");
+      if (data.success) {
+        // Map the results to include the original test case
+        const mappedResults = data.results.map((result, index) => ({
+          ...result,
+          testCase: formattedTestCases[index],
+        }));
+        setResults(mappedResults);
+      } else {
+        setError(data.error || "Failed to execute code");
       }
-
-      setResults(data.results);
     } catch (err) {
-      setError(err.message || "An error occurred while running the code");
+      console.error("Execution error:", err);
+      setError("Failed to execute code: " + err.message);
     } finally {
       setIsRunning(false);
     }
@@ -74,6 +134,28 @@ const CodeEditor = () => {
 
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
+      {/* Add Problem Info Display */}
+      {/* {problemData && (
+        <div className="p-4 border-b bg-gray-50">
+          <h2 className="text-xl font-bold mb-2">{problemData.title}</h2>
+          <p className="text-gray-700 mb-2">{problemData.description}</p>
+          {problemData.difficulty && (
+            <span
+              className={`inline-block px-2 py-1 rounded text-sm ${
+                problemData.difficulty === "easy"
+                  ? "bg-green-100 text-green-800"
+                  : problemData.difficulty === "medium"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {problemData.difficulty.charAt(0).toUpperCase() +
+                problemData.difficulty.slice(1)}
+            </span>
+          )}
+        </div>
+      )} */}
+
       {/* Toolbar */}
       <div className="flex items-center justify-between p-4 border-b">
         <div className="flex items-center space-x-4">
@@ -173,52 +255,60 @@ const CodeEditor = () => {
         />
       </div>
 
-      {/* Results Panel */}
-      <div className="p-4 border-t bg-white">
-        <h3 className="text-lg font-semibold mb-2">Test Results</h3>
-        {error && (
-          <div className="p-3 mb-4 bg-red-100 text-red-800 rounded-lg">
-            {error}
-          </div>
-        )}
-        {results && (
-          <div className="space-y-4">
+      {/* Test Results Panel */}
+      {results && (
+        <div className="p-4 border-t bg-gray-50">
+          <h3 className="text-lg font-semibold mb-2">Test Results</h3>
+          <div className="space-y-2">
             {results.map((result, index) => (
               <div
                 key={index}
-                className={`p-4 rounded-lg ${
-                  result.passed ? "bg-green-50" : "bg-red-50"
+                className={`p-3 rounded ${
+                  result.passed
+                    ? "bg-green-50 border border-green-200"
+                    : "bg-red-50 border border-red-200"
                 }`}
               >
-                <div className="flex items-center space-x-2">
-                  <span className="text-xl">{result.passed ? "✅" : "❌"}</span>
+                <div className="flex items-center justify-between">
                   <span className="font-medium">
-                    {result.testCase.description}
+                    {result.testCase?.description || `Test Case ${index + 1}`}
+                  </span>
+                  <span
+                    className={`px-2 py-1 rounded text-sm ${
+                      result.passed
+                        ? "bg-green-100 text-green-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {result.passed ? "Passed" : "Failed"}
                   </span>
                 </div>
                 {!result.passed && (
-                  <div className="mt-2 space-y-1 text-sm">
-                    <p>
-                      <span className="font-medium">Expected:</span>{" "}
-                      {result.expectedOutput}
+                  <div className="mt-2 text-sm">
+                    <p className="text-gray-600">
+                      <span className="font-medium">Input:</span>{" "}
+                      <pre className="mt-1 whitespace-pre-wrap">
+                        {result.testCase?.input || "No input"}
+                      </pre>
                     </p>
-                    <p>
+                    <p className="text-gray-600">
+                      <span className="font-medium">Expected:</span>{" "}
+                      {result.testCase?.expectedOutput || "No expected output"}
+                    </p>
+                    <p className="text-gray-600">
                       <span className="font-medium">Got:</span>{" "}
-                      {result.output || "No output"}
+                      {result.actualOutput || "No output"}
                     </p>
                     {result.error && (
-                      <p className="text-red-600">
-                        <span className="font-medium">Error:</span>{" "}
-                        {result.error}
-                      </p>
+                      <p className="text-red-600 mt-1">Error: {result.error}</p>
                     )}
                   </div>
                 )}
               </div>
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };

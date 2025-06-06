@@ -1,21 +1,40 @@
 import React from "react";
 
 const ProblemDetail = ({ problem }) => {
+  if (!problem) {
+    return (
+      <div className="text-center p-4 text-gray-600">
+        Loading problem details...
+      </div>
+    );
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 h-full flex flex-col">
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">
-            {problem?.title || "Two Sum"}
-          </h1>
+          <h1 className="text-2xl font-bold text-gray-800">{problem.title}</h1>
           <div className="flex gap-2 mt-1">
-            <span className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
-              Easy
+            <span
+              className={`px-2 py-1 rounded-full text-sm ${
+                problem.difficulty === "easy"
+                  ? "bg-green-100 text-green-800"
+                  : problem.difficulty === "medium"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {problem.difficulty}
             </span>
-            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-              Arrays
-            </span>
+            {problem.topics?.map((topic) => (
+              <span
+                key={topic}
+                className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+              >
+                {topic}
+              </span>
+            ))}
           </div>
         </div>
         <button className="text-gray-500 hover:text-gray-700">
@@ -41,39 +60,47 @@ const ProblemDetail = ({ problem }) => {
         <h2 className="text-lg font-semibold text-gray-800 mb-2">
           Description
         </h2>
-        <p className="text-gray-600">
-          {problem?.description ||
-            "Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target. You may assume that each input would have exactly one solution, and you may not use the same element twice."}
-        </p>
+        <p className="text-gray-600">{problem.description}</p>
       </div>
 
       {/* Examples */}
-      <div className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-2">Examples</h2>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <p className="text-gray-600 mb-2">
-            <strong>Example 1:</strong>
-          </p>
-          <pre className="bg-gray-100 p-3 rounded text-sm">
-            Input: nums = [2,7,11,15], target = 9{"\n"}
-            Output: [0,1]{"\n"}
-            Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
-          </pre>
+      {problem.examples && problem.examples.length > 0 && (
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">Examples</h2>
+          {problem.examples.map((example, index) => (
+            <div key={index} className="bg-gray-50 rounded-lg p-4 mb-4">
+              <p className="text-gray-600 mb-2">
+                <strong>Example {index + 1}:</strong>
+              </p>
+              <pre className="bg-gray-100 p-3 rounded text-sm">
+                Input: {example.input}
+                {"\n"}
+                Output: {example.output}
+                {example.explanation && (
+                  <>
+                    {"\n"}
+                    Explanation: {example.explanation}
+                  </>
+                )}
+              </pre>
+            </div>
+          ))}
         </div>
-      </div>
+      )}
 
       {/* Constraints */}
-      <div className="mt-auto">
-        <h2 className="text-lg font-semibold text-gray-800 mb-2">
-          Constraints
-        </h2>
-        <ul className="list-disc list-inside text-gray-600 space-y-1">
-          <li>2 ≤ nums.length ≤ 10⁴</li>
-          <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
-          <li>-10⁹ ≤ target ≤ 10⁹</li>
-          <li>Only one valid answer exists.</li>
-        </ul>
-      </div>
+      {problem.constraints && problem.constraints.length > 0 && (
+        <div className="mt-auto">
+          <h2 className="text-lg font-semibold text-gray-800 mb-2">
+            Constraints
+          </h2>
+          <ul className="list-disc list-inside text-gray-600 space-y-1">
+            {problem.constraints.map((constraint, index) => (
+              <li key={index}>{constraint}</li>
+            ))}
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
