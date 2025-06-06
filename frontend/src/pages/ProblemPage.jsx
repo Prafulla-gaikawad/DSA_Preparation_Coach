@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { Resizable } from "re-resizable";
 import ProblemDetail from "../components/problems/ProblemDetail";
 import CodeEditor from "../components/code/CodeEditor";
@@ -12,6 +13,7 @@ const ResizablePanel = ({
   minHeight,
   maxHeight,
   className = "",
+  style = {},
 }) => {
   return (
     <Resizable
@@ -21,10 +23,15 @@ const ResizablePanel = ({
       minHeight={minHeight}
       maxHeight={maxHeight}
       className={`relative bg-white rounded-lg shadow-md ${className}`}
-      style={{ transition: "none" }}
+      style={{
+        transition: "none",
+        ...style,
+      }}
     >
       <div className="h-full w-full overflow-auto">{children}</div>
-      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gray-200 cursor-row-resize hover:bg-blue-500 z-10" />
+      <div className="absolute bottom-0 left-0 right-0 h-2 bg-gray-200 cursor-row-resize hover:bg-blue-500 z-10 flex items-center justify-center">
+        <div className="w-12 h-1 bg-gray-400 rounded-full"></div>
+      </div>
     </Resizable>
   );
 };
@@ -40,81 +47,136 @@ const ScrollablePanel = ({ children, className = "" }) => {
 };
 
 const ProblemPage = () => {
+  const { problemId } = useParams();
+  const navigate = useNavigate();
+  const [problem, setProblem] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [testResults, setTestResults] = useState([]);
-  const [leftPanelHeight, setLeftPanelHeight] = useState("50%");
-  const [rightPanelHeight, setRightPanelHeight] = useState("50%");
+  const [leftPanelHeight, setLeftPanelHeight] = useState("60%");
   const [backendStatus, setBackendStatus] = useState(null);
 
   useEffect(() => {
-    const checkBackendConnection = async () => {
-      try {
-        const response = await fetch("http://localhost:5000/api/test", {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-          },
-        });
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        setBackendStatus(data);
-        console.log("Backend connection status:", data);
-      } catch (error) {
-        console.error("Error connecting to backend:", error);
-        setBackendStatus({
-          status: "error",
-          message: `Failed to connect to backend: ${error.message}`,
-          error: error.message,
-        });
-      }
-    };
-
+    fetchProblem();
     checkBackendConnection();
-  }, []);
+  }, [problemId]);
 
-  const handleRunCode = (code) => {
-    // TODO: Implement code execution logic
-    console.log("Running code:", code);
+  const fetchProblem = async () => {
+    try {
+      const response = await fetch(
+        `http://localhost:5000/api/problems/${problemId}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch problem");
+      }
+      const data = await response.json();
+      setProblem(data);
+      setLoading(false);
+    } catch (err) {
+      setError(err.message);
+      setLoading(false);
+    }
   };
 
-  const calculateNewHeight = (currentHeight, delta, totalHeight) => {
-    const newHeight = parseInt(currentHeight) + delta;
-    const minHeight = 200; // Minimum height in pixels
-    const maxHeight = totalHeight * 0.8; // 80% of total height
-    return Math.min(Math.max(newHeight, minHeight), maxHeight);
+  const checkBackendConnection = async () => {
+    try {
+      const response = await fetch("http://localhost:5000/api/test", {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      setBackendStatus(data);
+    } catch (error) {
+      console.error("Error connecting to backend:", error);
+      setBackendStatus({
+        status: "error",
+        message: `Failed to connect to backend: ${error.message}`,
+        error: error.message,
+      });
+    }
+  };
+
+  const handleRunCode = async (code) => {
+    try {
+      const response = await fetch("http://localhost:5000/api/execute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          problemId,
+          code,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to execute code");
+      }
+
+      const results = await response.json();
+      setTestResults(results);
+    } catch (error) {
+      console.error("Error executing code:", error);
+      setTestResults([
+        {
+          status: "error",
+          message: "Failed to execute code: " + error.message,
+        },
+      ]);
+    }
   };
 
   const handleLeftResize = (e, direction, ref, d) => {
-    const totalHeight = window.innerHeight - 32; // Account for padding
-    const newHeight = calculateNewHeight(
-      parseInt(leftPanelHeight),
-      d.height,
-      totalHeight
-    );
-    const newHeightPercent = (newHeight / totalHeight) * 100;
-    const remainingPercent = 100 - newHeightPercent;
-
-    setLeftPanelHeight(`${newHeightPercent}%`);
-    setRightPanelHeight(`${remainingPercent}%`);
+    const containerHeight = window.innerHeight - 32;
+    const currentHeight = parseInt(leftPanelHeight);
+    const newHeight = currentHeight + (d.height / containerHeight) * 100;
+    const constrainedHeight = Math.min(Math.max(newHeight, 30), 80);
+    setLeftPanelHeight(`${constrainedHeight}%`);
   };
 
-  const handleRightResize = (e, direction, ref, d) => {
-    const totalHeight = window.innerHeight - 32; // Account for padding
-    const newHeight = calculateNewHeight(
-      parseInt(rightPanelHeight),
-      d.height,
-      totalHeight
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      </div>
     );
-    const newHeightPercent = (newHeight / totalHeight) * 100;
-    const remainingPercent = 100 - newHeightPercent;
+  }
 
-    setRightPanelHeight(`${newHeightPercent}%`);
-    setLeftPanelHeight(`${remainingPercent}%`);
-  };
+  if (error) {
+    return (
+      <div className="text-center text-red-600 p-4">
+        Error loading problem: {error}
+        <button
+          onClick={() => navigate("/problems")}
+          className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Back to Problems
+        </button>
+      </div>
+    );
+  }
+
+  if (!problem) {
+    return (
+      <div className="text-center p-4">
+        Problem not found
+        <button
+          onClick={() => navigate("/problems")}
+          className="ml-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Back to Problems
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 p-4">
@@ -137,47 +199,77 @@ const ProblemPage = () => {
         </div>
       )}
 
-      <div className="h-[calc(100vh-2rem)] flex gap-4">
+      {/* Problem Header */}
+      <div className="mb-4 flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">{problem.title}</h1>
+          <div className="flex items-center space-x-2 mt-1">
+            <span
+              className={`px-3 py-1 rounded-full text-sm font-medium ${
+                problem.difficulty === "easy"
+                  ? "bg-green-100 text-green-800"
+                  : problem.difficulty === "medium"
+                  ? "bg-yellow-100 text-yellow-800"
+                  : "bg-red-100 text-red-800"
+              }`}
+            >
+              {problem.difficulty}
+            </span>
+            {problem.tags?.map((tag) => (
+              <span
+                key={tag}
+                className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={() => navigate("/problems")}
+          className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+        >
+          Back to Problems
+        </button>
+      </div>
+
+      <div className="h-[calc(100vh-8rem)] flex gap-4">
         {/* Left Column */}
         <div className="w-1/2 flex flex-col gap-4">
           {/* Problem Statement */}
           <ResizablePanel
             size={{ width: "100%", height: leftPanelHeight }}
             onResizeStop={handleLeftResize}
-            minHeight={200}
-            maxHeight="80vh"
+            minHeight="30%"
+            maxHeight="80%"
             className="flex-shrink-0"
+            style={{ height: leftPanelHeight }}
           >
             <div className="h-full overflow-auto">
-              <ProblemDetail />
+              <ProblemDetail problem={problem} />
             </div>
           </ResizablePanel>
 
           {/* AI Mentor Chat */}
           <ScrollablePanel className="flex-1 min-h-[200px]">
-            <AIMentorChat />
+            <AIMentorChat problemId={problemId} />
           </ScrollablePanel>
         </div>
 
-        {/* Right Column */}
-        <div className="w-1/2 flex flex-col gap-4">
-          {/* Code Editor */}
-          <ResizablePanel
-            size={{ width: "100%", height: rightPanelHeight }}
-            onResizeStop={handleRightResize}
-            minHeight={200}
-            maxHeight="80vh"
-            className="flex-shrink-0"
-          >
-            <div className="h-full overflow-auto">
+        {/* Right Column - Full Height */}
+        <div className="w-1/2 h-full">
+          {/* Code Editor and Test Results Container */}
+          <div className="h-full bg-white rounded-lg shadow-md overflow-hidden flex flex-col">
+            <div className="flex-1 min-h-0">
               <CodeEditor onRun={handleRunCode} />
             </div>
-          </ResizablePanel>
-
-          {/* Test Cases */}
-          <ScrollablePanel className="flex-1 min-h-[200px]">
-            <TestResults results={testResults} />
-          </ScrollablePanel>
+            {/* Test Results will be shown below the editor when available */}
+            {testResults && testResults.length > 0 && (
+              <div className="border-t">
+                <TestResults results={testResults} />
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

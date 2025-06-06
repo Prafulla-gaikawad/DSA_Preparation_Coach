@@ -5,7 +5,7 @@ const PISTON_API_URL = "https://emkc.org/api/v2/piston/execute";
 const languageVersions = {
   python: "3.10.0",
   javascript: "18.15.0",
-  java: "19.0.2",
+  java: "15.0.2",
   cpp: "10.2.0",
   c: "10.2.0",
 };
