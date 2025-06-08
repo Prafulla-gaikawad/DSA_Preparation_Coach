@@ -1,6 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
+import { analyzeCode } from "../../services/codeAnalysis";
+import CodeAnalysis from "./CodeAnalysis";
 
 const SUPPORTED_LANGUAGES = [
   { id: "python", name: "Python" },
@@ -29,9 +31,12 @@ const CodeEditor = ({ onRun }) => {
   const [theme, setTheme] = useState("vs-dark");
   const [code, setCode] = useState("");
   const [isRunning, setIsRunning] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [results, setResults] = useState(null);
   const [error, setError] = useState(null);
   const [problemData, setProblemData] = useState(null);
+  const [analysis, setAnalysis] = useState(null);
+  const [analysisError, setAnalysisError] = useState(null);
   const editorRef = useRef(null);
 
   useEffect(() => {
@@ -132,6 +137,50 @@ const CodeEditor = ({ onRun }) => {
     }
   };
 
+  const handleSubmitCode = async () => {
+    if (!code.trim()) {
+      setError("Please write some code first");
+      return;
+    }
+
+    setIsAnalyzing(true);
+    setError(null);
+    setAnalysisError(null);
+    setAnalysis(null);
+
+    try {
+      console.log("Submitting code for analysis:", {
+        language,
+        problemId,
+        codeLength: code.length,
+      });
+
+      const analysisData = await analyzeCode(code, language, problemId);
+
+      if (!analysisData || Object.keys(analysisData).length === 0) {
+        throw new Error("Received empty analysis data from server");
+      }
+
+      console.log("Received analysis data:", analysisData);
+      setAnalysis(analysisData);
+    } catch (err) {
+      console.error("Analysis error:", err);
+      setAnalysisError(
+        err.message || "Failed to analyze code. Please try again."
+      );
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleBackToEditor = () => {
+    setAnalysis(null);
+  };
+
+  if (analysis) {
+    return <CodeAnalysis analysis={analysis} onBack={handleBackToEditor} />;
+  }
+
   return (
     <div className="flex flex-col h-full bg-white rounded-lg shadow-md">
       {/* Add Problem Info Display */}
@@ -207,30 +256,77 @@ const CodeEditor = ({ onRun }) => {
           </button>
         </div>
 
-        <button
-          onClick={handleRunCode}
-          disabled={isRunning}
-          className={`px-4 py-1.5 rounded text-sm font-medium flex items-center space-x-2 ${
-            isRunning
-              ? "bg-gray-300 cursor-not-allowed"
-              : "bg-green-500 hover:bg-green-600 text-white"
-          }`}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            viewBox="0 0 20 20"
-            fill="currentColor"
+        <div className="flex items-center space-x-2">
+          <button
+            onClick={handleRunCode}
+            disabled={isRunning}
+            className={`px-4 py-1.5 rounded text-sm font-medium flex items-center space-x-2 ${
+              isRunning
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-green-500 hover:bg-green-600 text-white"
+            }`}
           >
-            <path
-              fillRule="evenodd"
-              d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
-              clipRule="evenodd"
-            />
-          </svg>
-          <span>{isRunning ? "Running..." : "Run Code"}</span>
-        </button>
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{isRunning ? "Running..." : "Run Code"}</span>
+          </button>
+
+          <button
+            onClick={handleSubmitCode}
+            disabled={isAnalyzing}
+            className={`px-4 py-1.5 rounded text-sm font-medium flex items-center space-x-2 ${
+              isAnalyzing
+                ? "bg-gray-300 cursor-not-allowed"
+                : "bg-blue-500 hover:bg-blue-600 text-white"
+            }`}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{isAnalyzing ? "Analyzing..." : "Submit"}</span>
+          </button>
+        </div>
       </div>
+
+      {/* Error Display */}
+      {analysisError && (
+        <div className="p-4 bg-red-50 border-b border-red-200">
+          <div className="flex items-center text-red-800">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5 mr-2"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+            >
+              <path
+                fillRule="evenodd"
+                d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+            <span>{analysisError}</span>
+          </div>
+        </div>
+      )}
 
       {/* Editor */}
       <div className="flex-1 min-h-[400px]">

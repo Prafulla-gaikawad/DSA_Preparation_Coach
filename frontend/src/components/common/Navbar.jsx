@@ -1,11 +1,19 @@
 import React from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   const isActive = (path) => {
     return location.pathname === path;
+  };
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
   };
 
   return (
@@ -29,36 +37,54 @@ const Navbar = () => {
             >
               Problems
             </Link>
-            <Link
-              to="/dashboard"
-              className={`px-3 py-2 rounded-md text-sm font-medium ${
-                isActive("/dashboard")
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Dashboard
-            </Link>
+            {user && (
+              <Link
+                to="/dashboard"
+                className={`px-3 py-2 rounded-md text-sm font-medium ${
+                  isActive("/dashboard")
+                    ? "bg-blue-100 text-blue-700"
+                    : "text-gray-600 hover:bg-gray-100"
+                }`}
+              >
+                Dashboard
+              </Link>
+            )}
           </div>
 
           {/* Auth Buttons */}
           <div className="flex items-center space-x-4">
-            <Link
-              to="/login"
-              className={`px-4 py-2 text-sm font-medium rounded-md ${
-                isActive("/login")
-                  ? "bg-blue-100 text-blue-700"
-                  : "text-gray-600 hover:bg-gray-100"
-              }`}
-            >
-              Sign in
-            </Link>
-            <Link
-              to="/signup"
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-            >
-              Sign up
-            </Link>
+            {user ? (
+              <div className="flex items-center space-x-4">
+                <div className="text-sm text-gray-600">
+                  Welcome, {user.name}
+                </div>
+                <button
+                  onClick={handleLogout}
+                  className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-100 rounded-md"
+                >
+                  Sign out
+                </button>
+              </div>
+            ) : (
+              <>
+                <Link
+                  to="/login"
+                  className={`px-4 py-2 text-sm font-medium rounded-md ${
+                    isActive("/login")
+                      ? "bg-blue-100 text-blue-700"
+                      : "text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signup"
+                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+                >
+                  Sign up
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
