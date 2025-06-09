@@ -4,6 +4,7 @@ import Editor from "@monaco-editor/react";
 import { analyzeCode } from "../../services/codeAnalysis";
 import CodeAnalysis from "./CodeAnalysis";
 import { useSolvedProblems } from "../../pages/Dashboard";
+import { baseUrl } from "../../URL";
 
 const SUPPORTED_LANGUAGES = [
   { id: "python", name: "Python" },

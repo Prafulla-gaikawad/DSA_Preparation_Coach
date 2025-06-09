@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { baseUrl } from "../../URL";
 
 const AIMentorChat = () => {
   const [messages, setMessages] = useState([]);

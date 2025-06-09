@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { baseUrl } from "../URL";
 
 const AuthContext = createContext(null);
 
@@ -18,7 +19,7 @@ export const AuthProvider = ({ children }) => {
 
   const fetchUserProfile = async (token) => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/profile", {
+      const response = await fetch("${baseUrl}/api/users/profile", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -41,7 +42,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (email, password) => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/login", {
+      const response = await fetch("${baseUrl}/api/users/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -65,7 +66,7 @@ export const AuthProvider = ({ children }) => {
 
   const signup = async (userData) => {
     try {
-      const response = await fetch("http://localhost:5000/api/users/register", {
+      const response = await fetch("${baseUrl}/api/users/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

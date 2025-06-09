@@ -1,3 +1,4 @@
+import { baseUrl } from "../URL";
 const analyzeCode = async (code, language, problemId) => {
   try {
     // Sanitize the code by removing control characters and properly escaping special characters
@@ -13,20 +14,17 @@ const analyzeCode = async (code, language, problemId) => {
       codeLength: code.length,
     });
 
-    const response = await fetch(
-      "http://localhost:5000/api/agent/analyze-code",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          code: sanitizedCode,
-          language,
-          problemId,
-        }),
-      }
-    );
+    const response = await fetch("${baseUrl}/api/agent/analyze-code", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        code: sanitizedCode,
+        language,
+        problemId,
+      }),
+    });
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

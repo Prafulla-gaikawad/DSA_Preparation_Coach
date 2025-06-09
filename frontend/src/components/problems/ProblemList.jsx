@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { baseUrl } from "../../URL";
 
 const ProblemList = () => {
   const [problems, setProblems] = useState([]);
@@ -15,7 +16,7 @@ const ProblemList = () => {
 
   const fetchProblems = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/problems");
+      const response = await fetch("${baseUrl}/api/problems");
       if (!response.ok) {
         throw new Error("Failed to fetch problems");
       }

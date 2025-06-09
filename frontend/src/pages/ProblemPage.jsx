@@ -4,6 +4,7 @@ import { Resizable } from "re-resizable";
 import ProblemDetail from "../components/problems/ProblemDetail";
 import CodeEditor from "../components/code/CodeEditor";
 import AIMentorChat from "../components/coach/AIMentorChat";
+import { baseUrl } from "../URL";
 // import TestResults from "../components/code/TestResults";
 
 const ResizablePanel = ({
@@ -63,9 +64,7 @@ const ProblemPage = () => {
 
   const fetchProblem = async () => {
     try {
-      const response = await fetch(
-        `http://localhost:5000/api/problems/${problemId}`
-      );
+      const response = await fetch(`${baseUrl}/api/problems/${problemId}`);
       if (!response.ok) {
         throw new Error("Failed to fetch problem");
       }
@@ -80,7 +79,7 @@ const ProblemPage = () => {
 
   const checkBackendConnection = async () => {
     try {
-      const response = await fetch("http://localhost:5000/api/test", {
+      const response = await fetch("${baseUrl}/api/test", {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -106,7 +105,7 @@ const ProblemPage = () => {
 
   const handleRunCode = async (code) => {
     try {
-      const response = await fetch("http://localhost:5000/api/execute", {
+      const response = await fetch("${baseUrl}/api/execute", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
