@@ -103,6 +103,26 @@ const userController = {
       res.status(500).json({ message: error.message });
     }
   },
+
+  // Increment solved problems count
+  async incrementSolvedProblems(req, res) {
+    try {
+      const user = await User.findById(req.user.userId);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      user.solvedProblemsCount += 1;
+      await user.save();
+
+      res.json({
+        message: "Solved problems count updated",
+        solvedProblemsCount: user.solvedProblemsCount,
+      });
+    } catch (error) {
+      res.status(500).json({ message: error.message });
+    }
+  },
 };
 
 module.exports = userController;

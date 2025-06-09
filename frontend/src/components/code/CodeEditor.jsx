@@ -3,6 +3,7 @@ import { useParams } from "react-router-dom";
 import Editor from "@monaco-editor/react";
 import { analyzeCode } from "../../services/codeAnalysis";
 import CodeAnalysis from "./CodeAnalysis";
+import { useSolvedProblems } from "../../pages/Dashboard";
 
 const SUPPORTED_LANGUAGES = [
   { id: "python", name: "Python" },
@@ -27,6 +28,7 @@ const DEFAULT_TEST_CASES = [
 
 const CodeEditor = ({ onRun }) => {
   const { problemId } = useParams();
+  const { incrementSolvedCount } = useSolvedProblems();
   const [language, setLanguage] = useState("javascript");
   const [theme, setTheme] = useState("vs-dark");
   const [code, setCode] = useState("");
@@ -142,6 +144,9 @@ const CodeEditor = ({ onRun }) => {
       setError("Please write some code first");
       return;
     }
+
+    // Increment solved problems count immediately when submit is clicked
+    incrementSolvedCount();
 
     setIsAnalyzing(true);
     setError(null);

@@ -4,7 +4,7 @@ import { Resizable } from "re-resizable";
 import ProblemDetail from "../components/problems/ProblemDetail";
 import CodeEditor from "../components/code/CodeEditor";
 import AIMentorChat from "../components/coach/AIMentorChat";
-import TestResults from "../components/code/TestResults";
+// import TestResults from "../components/code/TestResults";
 
 const ResizablePanel = ({
   children,

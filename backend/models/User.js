@@ -26,22 +26,9 @@ const userSchema = new mongoose.Schema(
       enum: ["beginner", "intermediate", "advanced"],
       default: "beginner",
     },
-    progress: {
-      solvedProblems: [
-        {
-          problemId: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Problem",
-          },
-          solvedAt: Date,
-          attempts: Number,
-          hintsUsed: Number,
-        },
-      ],
-      currentStreak: {
-        type: Number,
-        default: 0,
-      },
+    solvedProblemsCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }
