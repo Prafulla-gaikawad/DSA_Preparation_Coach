@@ -1,1 +1,1 @@
-export const baseUrl = `https://dsapreparationcoach.onrender.com`;
+export const baseUrl = `http://localhost:5000`;

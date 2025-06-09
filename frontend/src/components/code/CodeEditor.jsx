@@ -51,7 +51,7 @@ const CodeEditor = ({ onRun }) => {
   const fetchProblemData = async () => {
     try {
       const response = await fetch(
-        `http://localhost:5000/api/problems/${problemId}`
+        `${baseUrl}/api/problems/${problemId}`
       );
       const data = await response.json();
 
@@ -107,7 +107,7 @@ const CodeEditor = ({ onRun }) => {
 
       console.log("Sending test cases to backend:", formattedTestCases);
 
-      const response = await fetch("http://localhost:5000/api/code/execute", {
+      const response = await fetch(`${baseUrl}/api/code/execute`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

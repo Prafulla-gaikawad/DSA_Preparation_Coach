@@ -37,7 +37,7 @@ const AIMentorChat = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/agent/chat", {
+      const response = await fetch(`${baseUrl}/api/agent/chat`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

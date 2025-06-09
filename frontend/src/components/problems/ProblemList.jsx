@@ -16,7 +16,7 @@ const ProblemList = () => {
 
   const fetchProblems = async () => {
     try {
-      const response = await fetch("${baseUrl}/api/problems");
+      const response = await fetch(`${baseUrl}/api/problems`);
       if (!response.ok) {
         throw new Error("Failed to fetch problems");
       }

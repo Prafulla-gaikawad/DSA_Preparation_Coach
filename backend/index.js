@@ -22,8 +22,8 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173", // Frontend URL (development)
-      "https://your-frontend-domain.netlify.app", // Replace with your actual Netlify domain
-      "https://your-frontend-domain.vercel.app", // Alternative deployment
+      // "https://your-frontend-domain.netlify.app", // Replace with your actual Netlify domain
+      // "https://your-frontend-domain.vercel.app", // Alternative deployment
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,

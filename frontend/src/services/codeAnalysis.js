@@ -14,7 +14,7 @@ const analyzeCode = async (code, language, problemId) => {
       codeLength: code.length,
     });
 
-    const response = await fetch("${baseUrl}/api/agent/analyze-code", {
+    const response = await fetch(`${baseUrl}/api/agent/analyze-code`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

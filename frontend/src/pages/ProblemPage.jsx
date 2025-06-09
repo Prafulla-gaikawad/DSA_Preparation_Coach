@@ -79,7 +79,7 @@ const ProblemPage = () => {
 
   const checkBackendConnection = async () => {
     try {
-      const response = await fetch("${baseUrl}/api/test", {
+      const response = await fetch(`${baseUrl}/api/test`, {
         method: "GET",
         headers: {
           Accept: "application/json",
@@ -105,7 +105,7 @@ const ProblemPage = () => {
 
   const handleRunCode = async (code) => {
     try {
-      const response = await fetch("${baseUrl}/api/execute", {
+      const response = await fetch(`${baseUrl}/api/execute`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
