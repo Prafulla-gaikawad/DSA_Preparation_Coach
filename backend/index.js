@@ -21,7 +21,8 @@ app.use(express.json());
 app.use(
   cors({
     origin: [
-      "http://localhost:5173", // Frontend URL (development)
+      "timely-bunny-326f98.netlify.app",
+      // "http://localhost:5173", // Frontend URL (development)
       // "https://your-frontend-domain.netlify.app", // Replace with your actual Netlify domain
       // "https://your-frontend-domain.vercel.app", // Alternative deployment
     ],
