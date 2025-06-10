@@ -180,7 +180,7 @@ const ProblemPage = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-4">
       {/* Backend Status Indicator */}
-      {backendStatus && (
+      {/* {backendStatus && (
         <div
           className={`mb-4 p-2 rounded ${
             backendStatus.status === "success"
@@ -196,14 +196,14 @@ const ProblemPage = () => {
             </span>
           )}
         </div>
-      )}
+      )} */}
 
       {/* Problem Header */}
       <div className="mb-4 flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">{problem.title}</h1>
+          {/* <h1 className="text-2xl font-bold text-gray-800">{problem.title}</h1> */}
           <div className="flex items-center space-x-2 mt-1">
-            <span
+            {/* <span
               className={`px-3 py-1 rounded-full text-sm font-medium ${
                 problem.difficulty === "easy"
                   ? "bg-green-100 text-green-800"
@@ -213,7 +213,7 @@ const ProblemPage = () => {
               }`}
             >
               {problem.difficulty}
-            </span>
+            </span> */}
             {problem.tags?.map((tag) => (
               <span
                 key={tag}
