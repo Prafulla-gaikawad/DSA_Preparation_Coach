@@ -50,9 +50,7 @@ const CodeEditor = ({ onRun }) => {
 
   const fetchProblemData = async () => {
     try {
-      const response = await fetch(
-        `${baseUrl}/api/problems/${problemId}`
-      );
+      const response = await fetch(`${baseUrl}/api/problems/${problemId}`);
       const data = await response.json();
 
       if (response.ok) {
@@ -359,55 +357,69 @@ const CodeEditor = ({ onRun }) => {
 
       {/* Test Results Panel */}
       {results && (
-        <div className="p-4 border-t bg-gray-50">
-          <h3 className="text-lg font-semibold mb-2">Test Results</h3>
-          <div className="space-y-2">
-            {results.map((result, index) => (
-              <div
-                key={index}
-                className={`p-3 rounded ${
-                  result.passed
-                    ? "bg-green-50 border border-green-200"
-                    : "bg-red-50 border border-red-200"
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">
-                    {result.testCase?.description || `Test Case ${index + 1}`}
-                  </span>
-                  <span
-                    className={`px-2 py-1 rounded text-sm ${
-                      result.passed
-                        ? "bg-green-100 text-green-800"
-                        : "bg-red-100 text-red-800"
-                    }`}
-                  >
-                    {result.passed ? "Passed" : "Failed"}
-                  </span>
-                </div>
-                {!result.passed && (
-                  <div className="mt-2 text-sm">
-                    <p className="text-gray-600">
-                      <span className="font-medium">Input:</span>{" "}
-                      <pre className="mt-1 whitespace-pre-wrap">
-                        {result.testCase?.input || "No input"}
-                      </pre>
-                    </p>
-                    <p className="text-gray-600">
-                      <span className="font-medium">Expected:</span>{" "}
-                      {result.testCase?.expectedOutput || "No expected output"}
-                    </p>
-                    <p className="text-gray-600">
-                      <span className="font-medium">Got:</span>{" "}
-                      {result.actualOutput || "No output"}
-                    </p>
-                    {result.error && (
-                      <p className="text-red-600 mt-1">Error: {result.error}</p>
-                    )}
+        <div
+          className="border-t bg-gray-50 flex flex-col"
+          style={{ height: "300px" }}
+        >
+          <div className="p-4 border-b bg-white">
+            <h3 className="text-lg font-semibold">Test Results</h3>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="space-y-2">
+              {results.map((result, index) => (
+                <div
+                  key={index}
+                  className={`p-3 rounded ${
+                    result.passed
+                      ? "bg-green-50 border border-green-200"
+                      : "bg-red-50 border border-red-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">
+                      {result.testCase?.description || `Test Case ${index + 1}`}
+                    </span>
+                    <span
+                      className={`px-2 py-1 rounded text-sm ${
+                        result.passed
+                          ? "bg-green-100 text-green-800"
+                          : "bg-red-100 text-red-800"
+                      }`}
+                    >
+                      {result.passed ? "Passed" : "Failed"}
+                    </span>
                   </div>
-                )}
-              </div>
-            ))}
+                  {!result.passed && (
+                    <div className="mt-2 text-sm">
+                      <p className="text-gray-600">
+                        <span className="font-medium">Input:</span>{" "}
+                        <pre className="mt-1 whitespace-pre-wrap bg-gray-100 p-2 rounded">
+                          {result.testCase?.input || "No input"}
+                        </pre>
+                      </p>
+                      <p className="text-gray-600">
+                        <span className="font-medium">Expected:</span>{" "}
+                        <pre className="mt-1 whitespace-pre-wrap bg-gray-100 p-2 rounded">
+                          {result.testCase?.expectedOutput ||
+                            "No expected output"}
+                        </pre>
+                      </p>
+                      <p className="text-gray-600">
+                        <span className="font-medium">Got:</span>{" "}
+                        <pre className="mt-1 whitespace-pre-wrap bg-gray-100 p-2 rounded">
+                          {result.actualOutput || "No output"}
+                        </pre>
+                      </p>
+                      {result.error && (
+                        <p className="text-red-600 mt-1">
+                          Error: {result.error}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       )}
